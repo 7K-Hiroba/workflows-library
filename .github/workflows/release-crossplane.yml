@@ -1,0 +1,34 @@
+name: "Release: Crossplane"
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate compositions
+        run: |
+          pip install pyyaml
+          for file in ${{ inputs.path }}/*.yaml; do
+            if [ -f "$file" ]; then
+              python3 -c "import yaml; yaml.safe_load(open('$file'))"
+            fi
+          done
+
+      - name: Package as OCI artifact
+        run: |
+          echo "Crossplane compositions validated for version ${{ inputs.version }}"
+          echo "Configure Crossplane package publishing here if using xpkg"
+          # Example:
+          # crossplane xpkg build -f ${{ inputs.path }} -o crossplane-${{ inputs.version }}.xpkg
+          # crossplane xpkg push ghcr.io/${{ github.repository_owner }}/crossplane:${{ inputs.version }}

@@ -1,0 +1,38 @@
+name: "Release: Docs"
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install mkdocs
+        run: pip install mkdocs-techdocs-core
+
+      - name: Build TechDocs
+        run: mkdocs build -f mkdocs.yml -d site
+
+      - name: Publish TechDocs
+        run: |
+          echo "TechDocs built successfully for version ${{ inputs.version }}"
+          echo "Configure your Backstage techdocs publisher here"
+          # Example for S3/GCS:
+          # npx @techdocs/cli publish --publisher-type awsS3 \
+          #   --storage-name techdocs \
+          #   --entity default/component/${{ github.event.repository.name }} \
+          #   --directory site

@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  workflow_call:
+    inputs:
+      stack:
+        description: 'Stack type: app, helm, docs, crossplane'
+        required: true
+        type: string
+      path:
+        description: 'Path to the stack root'
+        required: true
+        type: string
+      image-name:
+        description: 'Container image name (app stack only)'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  app:
+    if: inputs.stack == 'app'
+    uses: ./.github/workflows/ci-app.yml
+    with:
+      path: ${{ inputs.path }}
+      image-name: ${{ inputs.image-name }}
+    secrets: inherit
+
+  helm:
+    if: inputs.stack == 'helm'
+    uses: ./.github/workflows/ci-helm.yml
+    with:
+      path: ${{ inputs.path }}
+    secrets: inherit
+
+  docs:
+    if: inputs.stack == 'docs'
+    uses: ./.github/workflows/ci-docs.yml
+    with:
+      path: ${{ inputs.path }}
+    secrets: inherit
+
+  crossplane:
+    if: inputs.stack == 'crossplane'
+    uses: ./.github/workflows/ci-crossplane.yml
+    with:
+      path: ${{ inputs.path }}
+    secrets: inherit

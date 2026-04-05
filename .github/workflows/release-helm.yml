@@ -1,0 +1,39 @@
+name: "Release: Helm"
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Lint before publish
+        run: helm lint ${{ inputs.path }}
+
+      - name: Login to GHCR (OCI)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Package chart
+        run: helm package ${{ inputs.path }} --version ${{ inputs.version }} --app-version ${{ inputs.version }}
+
+      - name: Push to OCI registry
+        run: |
+          CHART_NAME=$(basename ${{ inputs.path }})
+          helm push ${CHART_NAME}-${{ inputs.version }}.tgz oci://ghcr.io/${{ github.repository_owner }}/charts

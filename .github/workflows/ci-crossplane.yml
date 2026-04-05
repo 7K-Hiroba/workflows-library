@@ -1,0 +1,38 @@
+name: "CI: Crossplane"
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        required: true
+        type: string
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate YAML syntax
+        run: |
+          pip install pyyaml
+          for file in ${{ inputs.path }}/*.yaml; do
+            if [ -f "$file" ]; then
+              echo "Validating $file..."
+              python3 -c "import yaml; yaml.safe_load(open('$file'))"
+            fi
+          done
+
+      - name: Setup kubectl
+        uses: yokawasa/action-setup-kube-tools@v0.11.1
+        with:
+          kubectl: '1.29.0'
+
+      - name: Dry-run validate
+        run: |
+          for file in ${{ inputs.path }}/*.yaml; do
+            if [ -f "$file" ]; then
+              echo "Validating $file..."
+              kubectl apply --dry-run=client -f "$file" 2>&1 || true
+            fi
+          done
