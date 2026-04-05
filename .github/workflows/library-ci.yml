@@ -1,0 +1,22 @@
+name: "Library CI"
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lint-workflows:
+    name: Lint workflow files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Validate YAML syntax
+        run: |
+          pip install yamllint
+          yamllint -d "{extends: default, rules: {line-length: {max: 200}, truthy: disable}}" .github/workflows/
+
+      - name: Lint with actionlint
+        uses: rhysd/actionlint-action@v1
