@@ -37,18 +37,22 @@ jobs:
       - name: Build TechDocs
         run: mkdocs build -f mkdocs.yml -d site
 
+      - name: Set up s5cmd
+        if: inputs.s3-bucket != ''
+        uses: peak/action-setup-s5cmd@main
+        with:
+          version: v2.0.0
+
       - name: Publish docs to S3
         if: inputs.s3-bucket != ''
         env:
-          RCLONE_CONFIG_DOCS_TYPE: s3
-          RCLONE_CONFIG_DOCS_PROVIDER: Other
-          RCLONE_CONFIG_DOCS_ACCESS_KEY_ID: ${{ secrets.DOCS_S3_ACCESS_KEY_ID }}
-          RCLONE_CONFIG_DOCS_SECRET_ACCESS_KEY: ${{ secrets.DOCS_S3_SECRET_ACCESS_KEY }}
-          RCLONE_CONFIG_DOCS_ENDPOINT: ${{ secrets.DOCS_S3_ENDPOINT_URL }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.DOCS_S3_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DOCS_S3_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: garage
         run: |
           PREFIX="${{ inputs.s3-prefix }}"
           if [ -z "$PREFIX" ]; then
             PREFIX="${{ github.event.repository.name }}"
           fi
-          rclone sync site/ "docs:${{ inputs.s3-bucket }}/${PREFIX}/"
+          s5cmd --endpoint-url=${{ secrets.DOCS_S3_ENDPOINT_URL }} sync --size-only --delete site/ "s3://${{ inputs.s3-bucket }}/${PREFIX}/"
           echo "Published docs v${{ inputs.version }} to ${{ inputs.s3-bucket }}/${PREFIX}/"
