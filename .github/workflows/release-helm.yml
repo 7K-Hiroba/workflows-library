@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
+      id-token: write  # keyless cosign signing via Sigstore OIDC
     steps:
       - uses: actions/checkout@v5
 
@@ -24,16 +24,39 @@ jobs:
         with:
           version: v3.14.0
 
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
       - name: Lint before publish
         run: helm lint ${{ inputs.path }}
 
-      - name: Login to GHCR (OCI)
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Login to Harbor (OCI)
+        run: |
+          echo "${{ secrets.HARBOR_ROBOT_TOKEN }}" | \
+            helm registry login "${{ secrets.HARBOR_REGISTRY }}" \
+              --username "${{ secrets.HARBOR_ROBOT_NAME }}" \
+              --password-stdin
 
       - name: Package chart
         run: helm package ${{ inputs.path }} --version ${{ inputs.version }} --app-version ${{ inputs.version }}
 
-      - name: Push to OCI registry
+      - name: Push to Harbor
+        id: push
         run: |
           CHART_NAME=$(basename ${{ inputs.path }})
-          helm push ${CHART_NAME}-${{ inputs.version }}.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+          PACKAGE="${CHART_NAME}-${{ inputs.version }}.tgz"
+          OUTPUT=$(helm push "${PACKAGE}" oci://${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/charts 2>&1)
+          echo "${OUTPUT}"
+          DIGEST=$(echo "${OUTPUT}" | grep -oP 'Digest: \K\S+')
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+          echo "ref=oci://${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/charts/${CHART_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Sign chart with cosign (keyless)
+        run: cosign sign --yes "${{ steps.push.outputs.ref }}@${{ steps.push.outputs.digest }}"
+
+      - name: Verify signature
+        run: |
+          cosign verify \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            --certificate-identity-regexp "github.com/${{ github.repository_owner }}/" \
+            "${{ steps.push.outputs.ref }}@${{ steps.push.outputs.digest }}"
