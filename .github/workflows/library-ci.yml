@@ -6,7 +6,13 @@ on:
   push:
     branches: [main]
 
+permissions: {}
+
 jobs:
+  lint-pr-title:
+    if: github.event_name == 'pull_request'
+    uses: ./.github/workflows/ci-lint-pr-title.yml
+
   lint-workflows:
     name: Lint workflow files
     runs-on: ubuntu-latest
