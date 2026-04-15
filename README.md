@@ -39,7 +39,7 @@ release-please.yml                release.yml (dispatcher)
 |---|---|
 | `ci-app.yml` | Detect runtime → test (node/go/python) → docker build → Trivy scan |
 | `ci-helm.yml` | Helm lint → template render → chart-testing |
-| `ci-docs.yml` | mkdocs build → markdown lint |
+| `ci-docs.yml` | markdown lint |
 | `ci-crossplane.yml` | YAML validation → kubectl dry-run |
 
 ### Per-Stack Release
