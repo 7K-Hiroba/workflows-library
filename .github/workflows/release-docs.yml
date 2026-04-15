@@ -26,17 +26,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install mkdocs
-        run: pip install mkdocs-techdocs-core
-
-      - name: Build TechDocs
-        run: mkdocs build -f mkdocs.yml -d site
-
       - name: Set up s5cmd
         if: inputs.s3-bucket != ''
         uses: peak/action-setup-s5cmd@main
@@ -54,5 +43,5 @@ jobs:
           if [ -z "$PREFIX" ]; then
             PREFIX="${{ github.event.repository.name }}"
           fi
-          s5cmd --endpoint-url=${{ secrets.DOCS_S3_ENDPOINT_URL }} sync --size-only --delete site/ "s3://${{ inputs.s3-bucket }}/${PREFIX}/"
+          s5cmd --endpoint-url=${{ secrets.DOCS_S3_ENDPOINT_URL }} sync --size-only --delete ${{ inputs.path }}/ "s3://${{ inputs.s3-bucket }}/${PREFIX}/"
           echo "Published docs v${{ inputs.version }} to ${{ inputs.s3-bucket }}/${PREFIX}/"
