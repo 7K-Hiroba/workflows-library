@@ -19,4 +19,4 @@ jobs:
           yamllint -d "{extends: default, rules: {line-length: {max: 200}, truthy: disable}}" .github/workflows/
 
       - name: Lint with actionlint
-        uses: rhysd/actionlint-action@v1
+        uses: raven-actions/actionlint@v2
