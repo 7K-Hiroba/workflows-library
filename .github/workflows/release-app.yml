@@ -10,6 +10,7 @@ on:
         required: true
         type: string
       image-name:
+        description: 'Short image name (e.g. my-app). Full path is built from HARBOR_REGISTRY/HARBOR_PROJECT secrets.'
         required: true
         type: string
 
@@ -21,6 +22,8 @@ jobs:
       id-token: write  # keyless cosign signing via Sigstore OIDC
     outputs:
       digest: ${{ steps.build.outputs.digest }}
+    env:
+      IMAGE: ${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/${{ inputs.image-name }}
     steps:
       - uses: actions/checkout@v5
 
@@ -41,7 +44,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ inputs.image-name }}
+          images: ${{ env.IMAGE }}
           tags: |
             type=semver,pattern={{version}},value=${{ inputs.version }}
             type=semver,pattern={{major}}.{{minor}},value=${{ inputs.version }}
@@ -63,18 +66,16 @@ jobs:
       - name: Sign image with cosign (keyless)
         env:
           DIGEST: ${{ steps.build.outputs.digest }}
-          IMAGE: ${{ inputs.image-name }}
         run: cosign sign --yes "${IMAGE}@${DIGEST}"
 
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
         with:
-          image: ${{ inputs.image-name }}@${{ steps.build.outputs.digest }}
+          image: ${{ env.IMAGE }}@${{ steps.build.outputs.digest }}
           format: spdx-json
           output-file: sbom.spdx.json
 
       - name: Attest SBOM to image
         env:
           DIGEST: ${{ steps.build.outputs.digest }}
-          IMAGE: ${{ inputs.image-name }}
         run: cosign attest --yes --type spdxjson --predicate sbom.spdx.json "${IMAGE}@${DIGEST}"
