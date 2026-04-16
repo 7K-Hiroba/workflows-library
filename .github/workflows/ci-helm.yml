@@ -34,11 +34,34 @@ jobs:
       - name: Template render
         run: helm template test-release ${{ inputs.path }}
 
-  test:
-    needs: [lint, template]
+  unittest:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+        with:
+          version: v3.14.0
+
+      - name: Install helm-unittest plugin
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest.git
+
+      - name: Run unit tests
+        run: helm unittest ${{ inputs.path }}
+
+  test:
+    needs: [lint, template, unittest]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check for values schema
+        run: |
+          if [ ! -f "${{ inputs.path }}/values.schema.json" ]; then
+            echo "::error::Missing values.schema.json in ${{ inputs.path }}"
+            exit 1
+          fi
 
       - name: Set up Helm
         uses: azure/setup-helm@v5
