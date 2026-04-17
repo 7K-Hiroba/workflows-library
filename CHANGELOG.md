@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2](https://github.com/7K-Hiroba/workflows-library/compare/v1.0.1...v1.0.2) (2026-04-17)
+
+
+### Bug Fixes
+
+* update ci helm version to latest ([b5ae248](https://github.com/7K-Hiroba/workflows-library/commit/b5ae248d4909340a9194a39c3388664d142e9d0d))
+* update missing permission ([51aaa5f](https://github.com/7K-Hiroba/workflows-library/commit/51aaa5f4a59b564281df1d140418c5b1ec7f91fa))
+
 ## [1.0.1](https://github.com/7K-Hiroba/workflows-library/compare/v1.0.0...v1.0.1) (2026-04-16)
 
 
