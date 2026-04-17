@@ -1,10 +1,11 @@
 name: "Library CI"
 
 on:
-  push:
+  pull_request:
     branches: [main]
 
-permissions: {}
+permissions:
+  pull-requests: read
 
 jobs:
   lint-pr-title:
