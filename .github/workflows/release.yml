@@ -24,7 +24,7 @@ on:
 jobs:
   app:
     if: inputs.stack == 'app'
-    uses: ./.github/workflows/release-app.yml
+    uses: 7K-Hiroba/workflows-library/.github/workflows/release-app.yml@v1
     with:
       path: ${{ inputs.path }}
       version: ${{ inputs.version }}
@@ -33,7 +33,7 @@ jobs:
 
   helm:
     if: inputs.stack == 'helm'
-    uses: ./.github/workflows/release-helm.yml
+    uses: 7K-Hiroba/workflows-library/.github/workflows/release-helm.yml@v1
     with:
       path: ${{ inputs.path }}
       version: ${{ inputs.version }}
@@ -41,7 +41,7 @@ jobs:
 
   docs:
     if: inputs.stack == 'docs'
-    uses: ./.github/workflows/release-docs.yml
+    uses: 7K-Hiroba/workflows-library/.github/workflows/release-docs.yml@v1
     with:
       path: ${{ inputs.path }}
       version: ${{ inputs.version }}
@@ -49,7 +49,7 @@ jobs:
 
   crossplane:
     if: inputs.stack == 'crossplane'
-    uses: ./.github/workflows/release-crossplane.yml
+    uses: 7K-Hiroba/workflows-library/.github/workflows/release-crossplane.yml@v1
     with:
       path: ${{ inputs.path }}
       version: ${{ inputs.version }}
