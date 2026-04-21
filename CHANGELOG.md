@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/7K-Hiroba/workflows-library/compare/v1.1.0...v1.1.1) (2026-04-21)
+
+
+### Bug Fixes
+
+* bump versions and remove changelog from doc lint ([de45d4d](https://github.com/7K-Hiroba/workflows-library/commit/de45d4dbb6fbe8498b5f8fb9d9986fb78513c672))
+
 ## [1.1.0](https://github.com/7K-Hiroba/workflows-library/compare/v1.0.2...v1.1.0) (2026-04-21)
 
 
