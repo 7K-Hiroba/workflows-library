@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/7K-Hiroba/workflows-library/compare/v1.0.2...v1.1.0) (2026-04-21)
+
+
+### Features
+
+* bump helm cli version to v4 ([2b2b099](https://github.com/7K-Hiroba/workflows-library/commit/2b2b09905c7f809ae020a23b5ab57bd7d98fac01))
+* bump helm version to v4 ([b2c5315](https://github.com/7K-Hiroba/workflows-library/commit/b2c5315d40f540904c5babcf6af46330771bc68a))
+
 ## [1.0.2](https://github.com/7K-Hiroba/workflows-library/compare/v1.0.1...v1.0.2) (2026-04-17)
 
 
