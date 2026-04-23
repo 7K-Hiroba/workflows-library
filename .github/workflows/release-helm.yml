@@ -67,7 +67,7 @@ jobs:
           echo "$OUTPUT"
           DIGEST=$(echo "$OUTPUT" | grep -oP 'Digest: \K\S+')
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
-          echo "ref=$REF/$CHART_NAME" >> "$GITHUB_OUTPUT"
+          echo "ref=$HARBOR_REGISTRY/$HARBOR_PROJECT/charts/$CHART_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Sign chart with cosign (keyless)
         run: cosign sign --yes "${{ steps.push.outputs.ref }}@${{ steps.push.outputs.digest }}"
