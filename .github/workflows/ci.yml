@@ -24,25 +24,21 @@ jobs:
     with:
       path: ${{ inputs.path }}
       image-name: ${{ inputs.image-name }}
-    secrets: inherit
 
   helm:
     if: inputs.stack == 'helm'
     uses: ./.github/workflows/ci-helm.yml
     with:
       path: ${{ inputs.path }}
-    secrets: inherit
 
   docs:
     if: inputs.stack == 'docs'
     uses: ./.github/workflows/ci-docs.yml
     with:
       path: ${{ inputs.path }}
-    secrets: inherit
 
   crossplane:
     if: inputs.stack == 'crossplane'
     uses: ./.github/workflows/ci-crossplane.yml
     with:
       path: ${{ inputs.path }}
-    secrets: inherit
