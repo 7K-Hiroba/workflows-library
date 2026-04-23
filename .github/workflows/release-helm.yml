@@ -40,6 +40,10 @@ jobs:
             helm registry login "$HARBOR_REGISTRY" \
               --username "$HARBOR_ROBOT_NAME" \
               --password-stdin
+          echo "$HARBOR_ROBOT_TOKEN" | \
+            cosign login "$HARBOR_REGISTRY" \
+              --username "$HARBOR_ROBOT_NAME" \
+              --password-stdin
 
       - name: Package chart
         id: package
