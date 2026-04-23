@@ -41,7 +41,7 @@ jobs:
 
   docs:
     if: inputs.stack == 'docs'
-    uses: 7K-Hiroba/workflows-library/.github/workflows/release-docs.yml@v1
+    uses: 7K-Hiroba/workflows-library/.github/workflows/release-docs.yml@fix/update-helm-release-process
     with:
       path: ${{ inputs.path }}
       version: ${{ inputs.version }}
