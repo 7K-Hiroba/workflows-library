@@ -42,7 +42,18 @@ jobs:
               --password-stdin
 
       - name: Package chart
-        run: helm package ${{ inputs.path }} --version ${{ inputs.version }}
+        env:
+          CHART_PATH: ${{ inputs.path }}
+          CHART_VERSION: ${{ inputs.version }}
+        run: |
+          set -x
+          echo "chart path:    $CHART_PATH"
+          echo "chart version: $CHART_VERSION"
+          ls -la "$CHART_PATH"
+          cat "$CHART_PATH/Chart.yaml"
+          helm package "$CHART_PATH" --version "$CHART_VERSION" --debug
+          echo "---- produced tarballs ----"
+          ls -la ./*.tgz
 
       - name: Push to Harbor
         id: push
