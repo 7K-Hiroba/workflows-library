@@ -42,52 +42,30 @@ jobs:
               --password-stdin
 
       - name: Package chart
+        id: package
         env:
           CHART_PATH: ${{ inputs.path }}
           CHART_VERSION: ${{ inputs.version }}
         run: |
-          set -x
-          echo "chart path:    $CHART_PATH"
-          echo "chart version: $CHART_VERSION"
-          ls -la "$CHART_PATH"
-          cat "$CHART_PATH/Chart.yaml"
-          helm package "$CHART_PATH" --version "$CHART_VERSION" --debug
-          echo "---- produced tarballs ----"
-          ls -la ./*.tgz
+          CHART_NAME=$(awk '/^name:/ {print $2; exit}' "$CHART_PATH/Chart.yaml")
+          PACKAGE="${CHART_NAME}-${CHART_VERSION}.tgz"
+          helm package "$CHART_PATH" --version "$CHART_VERSION"
+          test -f "$PACKAGE"
+          echo "name=$CHART_NAME" >> "$GITHUB_OUTPUT"
+          echo "package=$PACKAGE" >> "$GITHUB_OUTPUT"
 
       - name: Push to Harbor
         id: push
         env:
           HARBOR_REGISTRY: ${{ secrets.HARBOR_REGISTRY }}
           HARBOR_PROJECT: ${{ secrets.HARBOR_PROJECT }}
-          CHART_PATH: ${{ inputs.path }}
-          CHART_VERSION: ${{ inputs.version }}
+          CHART_NAME: ${{ steps.package.outputs.name }}
+          PACKAGE: ${{ steps.package.outputs.package }}
         run: |
-          set -x
-          CHART_NAME=$(basename "$CHART_PATH")
-          PACKAGE="${CHART_NAME}-${CHART_VERSION}.tgz"
           REF="oci://$HARBOR_REGISTRY/$HARBOR_PROJECT/charts"
-          echo "chart name: $CHART_NAME"
-          echo "package:    $PACKAGE"
-          echo "ref:        $REF"
-          ls -la "$PACKAGE" || { echo "::error::package tarball $PACKAGE not found"; ls -la ./*.tgz || true; exit 1; }
-          set +e
-          OUTPUT=$(helm push "$PACKAGE" "$REF" --debug 2>&1)
-          STATUS=$?
-          set -e
-          echo "---- helm push output ----"
+          OUTPUT=$(helm push "$PACKAGE" "$REF" 2>&1)
           echo "$OUTPUT"
-          echo "---- helm push exit: $STATUS ----"
-          if [ $STATUS -ne 0 ]; then
-            echo "::error::helm push failed with exit $STATUS"
-            exit $STATUS
-          fi
           DIGEST=$(echo "$OUTPUT" | grep -oP 'Digest: \K\S+')
-          if [ -z "$DIGEST" ]; then
-            echo "::error::could not parse Digest from helm push output"
-            exit 1
-          fi
-          echo "digest: $DIGEST"
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
           echo "ref=$REF/$CHART_NAME" >> "$GITHUB_OUTPUT"
 
