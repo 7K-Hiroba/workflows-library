@@ -31,36 +31,25 @@ jobs:
         run: helm lint ${{ inputs.path }}
 
       - name: Login to Harbor (OCI)
-        env:
-          HARBOR_REGISTRY: ${{ secrets.HARBOR_REGISTRY }}
-          HARBOR_ROBOT_NAME: ${{ secrets.HARBOR_ROBOT_NAME }}
-          HARBOR_ROBOT_TOKEN: ${{ secrets.HARBOR_ROBOT_TOKEN }}
         run: |
-          echo "$HARBOR_ROBOT_TOKEN" | \
-            helm registry login "$HARBOR_REGISTRY" \
-              --username "$HARBOR_ROBOT_NAME" \
+          echo "${{ secrets.HARBOR_ROBOT_TOKEN }}" | \
+            helm registry login "${{ secrets.HARBOR_REGISTRY }}" \
+              --username "${{ secrets.HARBOR_ROBOT_NAME }}" \
               --password-stdin
 
       - name: Package chart
-        run: helm package ${{ inputs.path }} --version ${{ inputs.version }} --app-version ${{ inputs.version }}
+        run: helm package ${{ inputs.path }} --version ${{ inputs.version }}
 
       - name: Push to Harbor
         id: push
-        env:
-          HARBOR_REGISTRY: ${{ secrets.HARBOR_REGISTRY }}
-          HARBOR_PROJECT: ${{ secrets.HARBOR_PROJECT }}
-          CHART_PATH: ${{ inputs.path }}
-          CHART_VERSION: ${{ inputs.version }}
         run: |
-          CHART_NAME=$(basename "$CHART_PATH")
-          PACKAGE="${CHART_NAME}-${CHART_VERSION}.tgz"
-          REF="oci://$HARBOR_REGISTRY/$HARBOR_PROJECT/charts"
-          OUTPUT=$(helm push "$PACKAGE" "$REF" 2>&1)
-          echo "$OUTPUT"
-          DIGEST=$(echo "$OUTPUT" | grep -oP 'Digest: \K\S+')
-          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
-          echo "ref=$REF/$CHART_NAME" >> "$GITHUB_OUTPUT"
-
+          CHART_NAME=$(basename ${{ inputs.path }})
+          PACKAGE="${CHART_NAME}-${{ inputs.version }}.tgz"
+          OUTPUT=$(helm push "${PACKAGE}" oci://${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/charts 2>&1)
+          echo "${OUTPUT}"
+          DIGEST=$(echo "${OUTPUT}" | grep -oP 'Digest: \K\S+')
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+          echo "ref=oci://${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/charts/${CHART_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Sign chart with cosign (keyless)
         run: cosign sign --yes "${{ steps.push.outputs.ref }}@${{ steps.push.outputs.digest }}"
