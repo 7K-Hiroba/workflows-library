@@ -31,9 +31,18 @@ jobs:
           s5cmd --endpoint-url=${{ secrets.DOCS_S3_ENDPOINT_URL }} sync --size-only --delete ${{ inputs.path }}/ "s3://${{ secrets.APPDOCS_S3_BUCKET }}/${PREFIX}/"
           echo "Published docs v${{ inputs.version }} to ${{ secrets.APPDOCS_S3_BUCKET }}/${PREFIX}/"
 
+      - name: Generate Hiroba app token
+        id: hiroba-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.HIROBA_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.HIROBA_DISPATCH_APP_PRIVATE_KEY }}
+          owner: 7K-Hiroba
+          repositories: Hiroba
+
       - name: Trigger Hiroba docs deploy
         env:
-          GH_TOKEN: ${{ secrets.HIROBA_DISPATCH_TOKEN }}
+          GH_TOKEN: ${{ steps.hiroba-token.outputs.token }}
           APP: ${{ github.event.repository.name }}
           VERSION: ${{ inputs.version }}
         run: |
