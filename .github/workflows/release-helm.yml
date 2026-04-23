@@ -52,15 +52,33 @@ jobs:
           CHART_PATH: ${{ inputs.path }}
           CHART_VERSION: ${{ inputs.version }}
         run: |
+          set -x
           CHART_NAME=$(basename "$CHART_PATH")
           PACKAGE="${CHART_NAME}-${CHART_VERSION}.tgz"
           REF="oci://$HARBOR_REGISTRY/$HARBOR_PROJECT/charts"
-          OUTPUT=$(helm push "$PACKAGE" "$REF" 2>&1)
+          echo "chart name: $CHART_NAME"
+          echo "package:    $PACKAGE"
+          echo "ref:        $REF"
+          ls -la "$PACKAGE" || { echo "::error::package tarball $PACKAGE not found"; ls -la ./*.tgz || true; exit 1; }
+          set +e
+          OUTPUT=$(helm push "$PACKAGE" "$REF" --debug 2>&1)
+          STATUS=$?
+          set -e
+          echo "---- helm push output ----"
           echo "$OUTPUT"
+          echo "---- helm push exit: $STATUS ----"
+          if [ $STATUS -ne 0 ]; then
+            echo "::error::helm push failed with exit $STATUS"
+            exit $STATUS
+          fi
           DIGEST=$(echo "$OUTPUT" | grep -oP 'Digest: \K\S+')
+          if [ -z "$DIGEST" ]; then
+            echo "::error::could not parse Digest from helm push output"
+            exit 1
+          fi
+          echo "digest: $DIGEST"
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
           echo "ref=$REF/$CHART_NAME" >> "$GITHUB_OUTPUT"
-
 
       - name: Sign chart with cosign (keyless)
         run: cosign sign --yes "${{ steps.push.outputs.ref }}@${{ steps.push.outputs.digest }}"
