@@ -51,18 +51,9 @@ jobs:
           CHART_PATH: ${{ inputs.path }}
           CHART_VERSION: ${{ inputs.version }}
         run: |
-          set -x
-          echo "chart path:    $CHART_PATH"
-          echo "chart version: $CHART_VERSION"
-          ls -la "$CHART_PATH"
-          cat "$CHART_PATH/Chart.yaml"
           CHART_NAME=$(awk '/^name:/ {print $2; exit}' "$CHART_PATH/Chart.yaml")
           PACKAGE="${CHART_NAME}-${CHART_VERSION}.tgz"
-          echo "chart name: $CHART_NAME"
-          echo "package:    $PACKAGE"
-          helm package "$CHART_PATH" --version "$CHART_VERSION" --debug
-          echo "---- produced tarballs ----"
-          ls -la ./*.tgz
+          helm package "$CHART_PATH" --version "$CHART_VERSION"
           test -f "$PACKAGE"
           echo "name=$CHART_NAME" >> "$GITHUB_OUTPUT"
           echo "package=$PACKAGE" >> "$GITHUB_OUTPUT"
@@ -75,47 +66,19 @@ jobs:
           CHART_NAME: ${{ steps.package.outputs.name }}
           PACKAGE: ${{ steps.package.outputs.package }}
         run: |
-          set -x
           REF="oci://$HARBOR_REGISTRY/$HARBOR_PROJECT/charts"
-          SIGN_REF="$HARBOR_REGISTRY/$HARBOR_PROJECT/charts/$CHART_NAME"
-          echo "helm push ref: $REF"
-          echo "sign ref:      $SIGN_REF"
-          ls -la "$PACKAGE"
-          set +e
-          OUTPUT=$(helm push "$PACKAGE" "$REF" --debug 2>&1)
-          STATUS=$?
-          set -e
-          echo "---- helm push output ----"
+          OUTPUT=$(helm push "$PACKAGE" "$REF" 2>&1)
           echo "$OUTPUT"
-          echo "---- helm push exit: $STATUS ----"
-          if [ $STATUS -ne 0 ]; then
-            echo "::error::helm push failed with exit $STATUS"
-            exit $STATUS
-          fi
           DIGEST=$(echo "$OUTPUT" | grep -oP 'Digest: \K\S+')
-          if [ -z "$DIGEST" ]; then
-            echo "::error::could not parse Digest from helm push output"
-            exit 1
-          fi
-          echo "digest: $DIGEST"
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
-          echo "ref=$SIGN_REF" >> "$GITHUB_OUTPUT"
+          echo "ref=$HARBOR_REGISTRY/$HARBOR_PROJECT/charts/$CHART_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Sign chart with cosign (keyless)
-        env:
-          COSIGN_REF: ${{ steps.push.outputs.ref }}@${{ steps.push.outputs.digest }}
-        run: |
-          set -x
-          echo "signing: $COSIGN_REF"
-          cosign sign --yes --verbose "$COSIGN_REF"
+        run: cosign sign --yes "${{ steps.push.outputs.ref }}@${{ steps.push.outputs.digest }}"
 
       - name: Verify signature
-        env:
-          COSIGN_REF: ${{ steps.push.outputs.ref }}@${{ steps.push.outputs.digest }}
         run: |
-          set -x
-          echo "verifying: $COSIGN_REF"
           cosign verify \
             --certificate-oidc-issuer https://token.actions.githubusercontent.com \
             --certificate-identity-regexp "github.com/${{ github.repository_owner }}/" \
-            "$COSIGN_REF"
+            "${{ steps.push.outputs.ref }}@${{ steps.push.outputs.digest }}"
