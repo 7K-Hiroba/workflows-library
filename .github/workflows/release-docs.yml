@@ -30,3 +30,14 @@ jobs:
           PREFIX="${{ github.event.repository.name }}"
           s5cmd --endpoint-url=${{ secrets.DOCS_S3_ENDPOINT_URL }} sync --size-only --delete ${{ inputs.path }}/ "s3://${{ secrets.APPDOCS_S3_BUCKET }}/${PREFIX}/"
           echo "Published docs v${{ inputs.version }} to ${{ secrets.APPDOCS_S3_BUCKET }}/${PREFIX}/"
+
+      - name: Trigger Hiroba docs deploy
+        env:
+          GH_TOKEN: ${{ secrets.HIROBA_DISPATCH_TOKEN }}
+          APP: ${{ github.event.repository.name }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          gh api -X POST /repos/7K-Hiroba/Hiroba/dispatches \
+            -f event_type=docs-updated \
+            -f "client_payload[app]=$APP" \
+            -f "client_payload[version]=$VERSION"
