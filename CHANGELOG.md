@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.4](https://github.com/7K-Hiroba/workflows-library/compare/v1.1.3...v1.1.4) (2026-04-24)
+
+
+### Bug Fixes
+
+* remove ci and release centralized workflows ([#20](https://github.com/7K-Hiroba/workflows-library/issues/20)) ([bca8b73](https://github.com/7K-Hiroba/workflows-library/commit/bca8b7327f30f7b5df68c2d13f84137730ac974d))
+
 ## [1.1.3](https://github.com/7K-Hiroba/workflows-library/compare/v1.1.2...v1.1.3) (2026-04-23)
 
 
