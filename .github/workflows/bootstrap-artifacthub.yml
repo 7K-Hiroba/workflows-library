@@ -68,10 +68,30 @@ jobs:
               exit 1
             fi
 
-            repo_id=$(curl -sS "https://artifacthub.io/api/v1/repositories/helm/$ORG/$chart" \
-              | jq -r .repository_id)
+            # On 201, AH returns the new repo (with repository_id) in the response body.
+            # Prefer that over an immediate GET, which races against AH's read-side propagation.
+            repo_id=$(jq -r '.repository_id // empty' /tmp/create.json 2>/dev/null || true)
+
+            # On 409 (or if the 201 body lacked the field) — look it up, authenticated, with retries.
+            if [ -z "$repo_id" ]; then
+              for attempt in 1 2 3 4 5; do
+                get_status=$(curl -sS -o /tmp/get.json -w "%{http_code}" \
+                  -H "X-API-KEY-ID: $AH_API_KEY_ID" \
+                  -H "X-API-KEY-SECRET: $AH_API_KEY_SECRET" \
+                  "https://artifacthub.io/api/v1/repositories/helm/$ORG/$chart")
+                if [ "$get_status" = "200" ]; then
+                  repo_id=$(jq -r '.repository_id // empty' /tmp/get.json 2>/dev/null || true)
+                  [ -n "$repo_id" ] && break
+                fi
+                echo "[$chart] AH GET attempt $attempt got HTTP $get_status, retrying in 5s..."
+                sleep 5
+              done
+            fi
+
             if [ -z "$repo_id" ] || [ "$repo_id" = "null" ]; then
               echo "[$chart] could not retrieve repository_id from AH"
+              echo "create.json: $(cat /tmp/create.json 2>/dev/null)"
+              echo "get.json: $(cat /tmp/get.json 2>/dev/null)"
               exit 1
             fi
             echo "[$chart] repository_id=$repo_id"
