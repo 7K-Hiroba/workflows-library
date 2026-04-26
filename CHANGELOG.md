@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.6](https://github.com/7K-Hiroba/workflows-library/compare/v1.1.5...v1.1.6) (2026-04-26)
+
+
+### Bug Fixes
+
+* look up AH repos via search endpoint, skip POST on duplicates ([d07d8f8](https://github.com/7K-Hiroba/workflows-library/commit/d07d8f8f9d88abb3dc1ab74b8a737ef34d563551))
+
 ## [1.1.5](https://github.com/7K-Hiroba/workflows-library/compare/v1.1.4...v1.1.5) (2026-04-26)
 
 
