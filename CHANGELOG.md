@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.7](https://github.com/7K-Hiroba/workflows-library/compare/v1.1.6...v1.1.7) (2026-04-26)
+
+
+### Bug Fixes
+
+* simplify artifacthub bootstrap ([#28](https://github.com/7K-Hiroba/workflows-library/issues/28)) ([bdd67cb](https://github.com/7K-Hiroba/workflows-library/commit/bdd67cb18c27f02236a46c830725c2f38203d86d))
+
 ## [1.1.6](https://github.com/7K-Hiroba/workflows-library/compare/v1.1.5...v1.1.6) (2026-04-26)
 
 
