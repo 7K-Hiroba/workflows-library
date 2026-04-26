@@ -14,8 +14,7 @@ on:
       charts:
         description: |
           JSON array of chart entries. Each entry:
-            { "file": "helm/base-artifacthub-repo.yml",
-              "chart": "my-app",
+            { "chart": "my-app",
               "displayName": "My App" }
         required: true
         type: string
@@ -23,13 +22,8 @@ on:
 jobs:
   bootstrap:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
     steps:
-      - uses: actions/checkout@v5
-
-      - name: Create missing Artifact Hub repos
+      - name: Create Artifact Hub repos
         env:
           AH_API_KEY_ID: ${{ secrets.AH_API_KEY_ID }}
           AH_API_KEY_SECRET: ${{ secrets.AH_API_KEY_SECRET }}
@@ -40,88 +34,25 @@ jobs:
           set -euo pipefail
           jq -c '.[]' <<<"$CHARTS" > /tmp/charts.jsonl
           while IFS= read -r entry; do
-            file=$(jq -r .file <<<"$entry")
             chart=$(jq -r .chart <<<"$entry")
             display=$(jq -r .displayName <<<"$entry")
 
-            current=$(grep -E '^repositoryID:' "$file" | sed -E 's/^repositoryID:\s*"?([^"]*)"?\s*$/\1/')
-            if [ -n "$current" ]; then
-              echo "[$chart] repositoryID already set — skipping"
-              continue
-            fi
+            echo "[$chart] creating Artifact Hub repo under org=$ORG"
+            status=$(curl -sS -o /tmp/create.json -w "%{http_code}" \
+              -X POST "https://artifacthub.io/api/v1/repositories/org/$ORG" \
+              -H "X-API-KEY-ID: $AH_API_KEY_ID" \
+              -H "X-API-KEY-SECRET: $AH_API_KEY_SECRET" \
+              -H "Content-Type: application/json" \
+              -d "$(jq -n \
+                    --arg name "$chart" \
+                    --arg display "$display" \
+                    --arg url "oci://$REGISTRY_BASE/$chart" \
+                    '{name: $name, display_name: $display, url: $url, kind: 0}')")
 
-            # AH does not expose a per-repo GET endpoint; the only way to look one up
-            # by name is the public /repositories/search endpoint.
-            lookup_repo_id() {
-              local out
-              out=$(curl -sS -o /tmp/search.json -w "%{http_code}" \
-                "https://artifacthub.io/api/v1/repositories/search?org=$ORG&name=$chart&limit=1")
-              if [ "$out" = "200" ]; then
-                jq -r --arg name "$chart" \
-                  '(if type == "array" then . else .data // [] end)
-                   | map(select(.name == $name)) | .[0].repository_id // empty' \
-                  /tmp/search.json 2>/dev/null || true
-              fi
-            }
-
-            # Already in AH? (prior partial run, manual creation, or someone made it in the UI)
-            repo_id=$(lookup_repo_id)
-
-            if [ -n "$repo_id" ]; then
-              echo "[$chart] already exists in AH, reusing repository_id"
-            else
-              echo "[$chart] creating Artifact Hub repo under org=$ORG"
-              status=$(curl -sS -o /tmp/create.json -w "%{http_code}" \
-                -X POST "https://artifacthub.io/api/v1/repositories/org/$ORG" \
-                -H "X-API-KEY-ID: $AH_API_KEY_ID" \
-                -H "X-API-KEY-SECRET: $AH_API_KEY_SECRET" \
-                -H "Content-Type: application/json" \
-                -d "$(jq -n \
-                      --arg name "$chart" \
-                      --arg display "$display" \
-                      --arg url "oci://$REGISTRY_BASE/$chart" \
-                      '{name: $name, display_name: $display, url: $url, kind: 0}')")
-
-              if [ "$status" != "201" ]; then
-                echo "AH create failed (HTTP $status): $(cat /tmp/create.json)"
-                exit 1
-              fi
-
-              # 201 may include the new repo body; prefer that over hitting search again.
-              repo_id=$(jq -r '.repository_id // empty' /tmp/create.json 2>/dev/null || true)
-
-              # Otherwise the search index needs a moment to catch up — retry.
-              if [ -z "$repo_id" ]; then
-                for attempt in 1 2 3 4 5; do
-                  repo_id=$(lookup_repo_id)
-                  [ -n "$repo_id" ] && break
-                  echo "[$chart] AH search attempt $attempt did not find repo yet, retrying in 5s..."
-                  sleep 5
-                done
-              fi
-            fi
-
-            if [ -z "$repo_id" ] || [ "$repo_id" = "null" ]; then
-              echo "[$chart] could not retrieve repository_id from AH"
-              echo "search.json: $(cat /tmp/search.json 2>/dev/null)"
-              echo "create.json: $(cat /tmp/create.json 2>/dev/null)"
+            if [ "$status" != "201" ]; then
+              echo "[$chart] AH create failed (HTTP $status): $(cat /tmp/create.json)"
               exit 1
             fi
-            echo "[$chart] repository_id=$repo_id"
-
-            sed -i "s|^repositoryID: .*|repositoryID: \"$repo_id\"|" "$file"
+            echo "[$chart] created"
           done < /tmp/charts.jsonl
-
-      - name: Open PR with repositoryIDs
-        uses: peter-evans/create-pull-request@v7
-        with:
-          branch: bootstrap/artifacthub-repo-ids
-          title: "ci: populate Artifact Hub repositoryIDs"
-          commit-message: "ci: populate Artifact Hub repositoryIDs"
-          body: |
-            Auto-generated by the `bootstrap-artifacthub` workflow.
-
-            Merging this PR will cause the `release-artifacthub-metadata` workflow
-            to re-push each `artifacthub-repo.yml` to its OCI repository, which
-            grants the **Verified Publisher** badge on the next Artifact Hub scan.
-          delete-branch: true
+#TODO: Retrieve repository ID and create pull request updating values
