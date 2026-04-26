@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.5](https://github.com/7K-Hiroba/workflows-library/compare/v1.1.4...v1.1.5) (2026-04-26)
+
+
+### Bug Fixes
+
+* avoid jq parse error on AH repo lookup race ([#24](https://github.com/7K-Hiroba/workflows-library/issues/24)) ([49c5445](https://github.com/7K-Hiroba/workflows-library/commit/49c544552b64cba100bc085a5307719d9147d8d0))
+
 ## [1.1.4](https://github.com/7K-Hiroba/workflows-library/compare/v1.1.3...v1.1.4) (2026-04-24)
 
 
