@@ -50,18 +50,32 @@ jobs:
               continue
             fi
 
-            # AH does not expose a per-repo GET endpoint; the only way to look one up
-            # by name is the public /repositories/search endpoint.
+            # AH has no per-repo GET endpoint; /repositories/search is the only public
+            # lookup. Its `name` parameter is fuzzy/full-text and ranks unreliably
+            # (e.g. org=...&name=stalwart&limit=1 returns [] while limit=20 finds it),
+            # so we list the org's repos and exact-match the name in jq. AH caps
+            # `limit` at 60, so paginate with `offset` to scale past 60 repos per org.
             lookup_repo_id() {
-              local out
-              out=$(curl -sS -o /tmp/search.json -w "%{http_code}" \
-                "https://artifacthub.io/api/v1/repositories/search?org=$ORG&name=$chart&limit=1")
-              if [ "$out" = "200" ]; then
-                jq -r --arg name "$chart" \
+              local offset=0 page_size=60 max_pages=50 found=""
+              for _ in $(seq 1 "$max_pages"); do
+                local code
+                code=$(curl -sS -o /tmp/search.json -w "%{http_code}" \
+                  "https://artifacthub.io/api/v1/repositories/search?org=$ORG&limit=$page_size&offset=$offset")
+                [ "$code" = "200" ] || return 0
+                local rows
+                rows=$(jq '(if type == "array" then . else .data // [] end) | length' /tmp/search.json 2>/dev/null || echo 0)
+                [ "$rows" -gt 0 ] || return 0
+                found=$(jq -r --arg name "$chart" \
                   '(if type == "array" then . else .data // [] end)
                    | map(select(.name == $name)) | .[0].repository_id // empty' \
-                  /tmp/search.json 2>/dev/null || true
-              fi
+                  /tmp/search.json 2>/dev/null || true)
+                if [ -n "$found" ]; then
+                  printf '%s' "$found"
+                  return 0
+                fi
+                [ "$rows" -lt "$page_size" ] && return 0
+                offset=$((offset + page_size))
+              done
             }
 
             # Already in AH? (prior partial run, manual creation, or someone made it in the UI)
