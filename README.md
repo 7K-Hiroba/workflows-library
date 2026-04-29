@@ -12,10 +12,11 @@ Consuming repos call two entry-point workflows (`ci.yml`, `release.yml`) with a 
 Consuming repo                    workflow-library
 ─────────────                     ────────────────
 ci.yml                            ci.yml (dispatcher)
-  job: stack=app       ──────►      ci-app.yml      → test, build, scan
-  job: stack=helm      ──────►      ci-helm.yml     → lint, template, test
-  job: stack=docs      ──────►      ci-docs.yml     → build, lint
-  job: stack=crossplane ─────►      ci-crossplane.yml → validate
+  job: stack=app       ──────►      ci-app.yml           → test, build, scan
+  job: stack=helm      ──────►      ci-helm.yml          → lint, template, test
+  job: stack=docs      ──────►      ci-docs.yml          → build, lint
+  job: stack=crossplane ─────►      ci-crossplane.yml    → validate
+  job: stack=kubeconform ────►      ci-kubeconform.yml   → validate manifests, deprecated APIs
 
 release-please.yml                release.yml (dispatcher)
   job: stack=app       ──────►      release-app.yml      → build+push to GHCR
@@ -38,9 +39,10 @@ release-please.yml                release.yml (dispatcher)
 | Workflow | Jobs |
 |---|---|
 | `ci-app.yml` | Detect runtime → test (node/go/python) → docker build → Trivy scan |
-| `ci-helm.yml` | Helm lint → template render → chart-testing |
+| `ci-helm.yml` | Helm lint → template render → chart-testing → kubeconform → deprecated API detection |
 | `ci-docs.yml` | markdown lint |
 | `ci-crossplane.yml` | YAML validation → kubectl dry-run |
+| `ci-kubeconform.yml` | kubeconform schema validation → pluto deprecated API detection |
 
 ### Per-Stack Release
 

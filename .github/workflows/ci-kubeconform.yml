@@ -1,0 +1,51 @@
+name: "CI: Kubeconform"
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        required: true
+        type: string
+        description: "Path to the directory containing Kubernetes manifests"
+      kubernetes-version:
+        required: false
+        type: string
+        default: "1.31.0"
+        description: "Target Kubernetes version for schema validation"
+
+jobs:
+  validate:
+    name: Validate Kubernetes Manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install kubeconform
+        run: |
+          KUBECONFORM_VERSION="v0.6.7"
+          curl -fsSL "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz" \
+            | tar xz -C /usr/local/bin kubeconform
+
+      - name: Install pluto
+        run: |
+          PLUTO_VERSION="5.21.0"
+          curl -fsSL "https://github.com/FairwindsOps/pluto/releases/download/v${PLUTO_VERSION}/pluto_${PLUTO_VERSION}_linux_amd64.tar.gz" \
+            | tar xz -C /usr/local/bin pluto
+
+      - name: Validate manifests
+        run: |
+          kubeconform \
+            -strict \
+            -ignore-missing-schemas \
+            -kubernetes-version "${{ inputs.kubernetes-version }}" \
+            -schema-location default \
+            -schema-location 'https://raw.githubusercontent.com/datree/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
+            -summary \
+            ${{ inputs.path }}
+
+      - name: Check for deprecated APIs
+        run: |
+          pluto detect-files \
+            -d ${{ inputs.path }} \
+            --target-versions "k8s=v${{ inputs.kubernetes-version }}" \
+            -o wide
