@@ -36,8 +36,25 @@ jobs:
         with:
           version: v4.1.4
 
+      - name: Load chart-local API versions
+        id: api-versions
+        run: |
+          file="${{ inputs.path }}/.ci-api-versions"
+          flags=""
+          if [ -f "$file" ]; then
+            while IFS= read -r line || [ -n "$line" ]; do
+              # Strip comments and whitespace
+              entry="${line%%#*}"
+              entry="$(echo -n "$entry" | tr -d '[:space:]')"
+              [ -z "$entry" ] && continue
+              flags="$flags --api-versions $entry"
+            done < "$file"
+          fi
+          echo "flags=$flags" >> "$GITHUB_OUTPUT"
+          echo "Resolved api-version flags:$flags"
+
       - name: Template render
-        run: helm template test-release ${{ inputs.path }}
+        run: helm template test-release ${{ inputs.path }}${{ steps.api-versions.outputs.flags }}
 
   unittest:
     runs-on: ubuntu-latest
@@ -102,9 +119,24 @@ jobs:
           curl -fsSL "https://github.com/FairwindsOps/pluto/releases/download/v${PLUTO_VERSION}/pluto_${PLUTO_VERSION}_linux_amd64.tar.gz" \
             | tar xz -C /usr/local/bin pluto
 
+      - name: Load chart-local API versions
+        id: api-versions
+        run: |
+          file="${{ inputs.path }}/.ci-api-versions"
+          flags=""
+          if [ -f "$file" ]; then
+            while IFS= read -r line || [ -n "$line" ]; do
+              entry="${line%%#*}"
+              entry="$(echo -n "$entry" | tr -d '[:space:]')"
+              [ -z "$entry" ] && continue
+              flags="$flags --api-versions $entry"
+            done < "$file"
+          fi
+          echo "flags=$flags" >> "$GITHUB_OUTPUT"
+
       - name: Validate rendered manifests
         run: |
-          helm template test-release ${{ inputs.path }} \
+          helm template test-release ${{ inputs.path }}${{ steps.api-versions.outputs.flags }} \
             | kubeconform \
               -strict \
               -ignore-missing-schemas \
@@ -115,5 +147,5 @@ jobs:
 
       - name: Check for deprecated APIs
         run: |
-          helm template test-release ${{ inputs.path }} \
+          helm template test-release ${{ inputs.path }}${{ steps.api-versions.outputs.flags }} \
             | pluto detect -
