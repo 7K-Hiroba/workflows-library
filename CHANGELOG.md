@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/7K-Hiroba/workflows-library/compare/v1.1.7...v1.2.0) (2026-04-29)
+
+
+### Features
+
+* create kubeconform for flux and argocd and run kubeconform on helm ci ([#30](https://github.com/7K-Hiroba/workflows-library/issues/30)) ([ddebb1f](https://github.com/7K-Hiroba/workflows-library/commit/ddebb1f4ba01f03fb8a3159acf9f8f5978079a83))
+
+
+### Bug Fixes
+
+* lint eof bootstrap-artifacthub.yaml ([3a97eda](https://github.com/7K-Hiroba/workflows-library/commit/3a97eda49dc07c05deb77b2cf157f833906c21e2))
+
 ## [1.1.7](https://github.com/7K-Hiroba/workflows-library/compare/v1.1.6...v1.1.7) (2026-04-26)
 
 
