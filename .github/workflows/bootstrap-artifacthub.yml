@@ -55,4 +55,3 @@ jobs:
             fi
             echo "[$chart] created"
           done < /tmp/charts.jsonl
-#TODO: Retrieve repository ID and create pull request updating values
