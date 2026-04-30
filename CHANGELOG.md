@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/7K-Hiroba/workflows-library/compare/v1.2.1...v1.2.2) (2026-04-30)
+
+
+### Bug Fixes
+
+* prefix artifacthub projects with hiroba- ([#34](https://github.com/7K-Hiroba/workflows-library/issues/34)) ([1605f0e](https://github.com/7K-Hiroba/workflows-library/commit/1605f0eb9db71c8b17b9a8f25a4968cc3698e7dc))
+
 ## [1.2.1](https://github.com/7K-Hiroba/workflows-library/compare/v1.2.0...v1.2.1) (2026-04-30)
 
 
