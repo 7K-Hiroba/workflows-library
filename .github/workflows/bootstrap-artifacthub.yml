@@ -44,7 +44,7 @@ jobs:
               -H "X-API-KEY-SECRET: $AH_API_KEY_SECRET" \
               -H "Content-Type: application/json" \
               -d "$(jq -n \
-                    --arg name "$chart" \
+                    --arg name "7k-$chart" \
                     --arg display "$display" \
                     --arg url "oci://$REGISTRY_BASE/$chart" \
                     '{name: $name, display_name: $display, url: $url, kind: 0}')")
