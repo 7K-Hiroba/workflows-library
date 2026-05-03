@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/7K-Hiroba/workflows-library/compare/v1.2.2...v1.3.0) (2026-05-03)
+
+
+### Features
+
+* Add renovate.json ([#36](https://github.com/7K-Hiroba/workflows-library/issues/36)) ([899ceb4](https://github.com/7K-Hiroba/workflows-library/commit/899ceb4d954abcf5f6543f6bf4c3f8597e1931a2))
+
 ## [1.2.2](https://github.com/7K-Hiroba/workflows-library/compare/v1.2.1...v1.2.2) (2026-04-30)
 
 
