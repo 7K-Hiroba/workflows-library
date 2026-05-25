@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.2](https://github.com/7K-Hiroba/workflows-library/compare/v1.5.1...v1.5.2) (2026-05-25)
+
+
+### Bug Fixes
+
+* add external certificate identity ([c30c8d1](https://github.com/7K-Hiroba/workflows-library/commit/c30c8d1700a0f0bd1db6d3eafcefc8e896a6a375))
+
 ## [1.5.1](https://github.com/7K-Hiroba/workflows-library/compare/v1.5.0...v1.5.1) (2026-05-24)
 
 
