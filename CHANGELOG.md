@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.4](https://github.com/7K-Hiroba/workflows-library/compare/v1.5.3...v1.5.4) (2026-05-26)
+
+
+### Bug Fixes
+
+* add regex cosign for reusable workflow usage ([af22d6e](https://github.com/7K-Hiroba/workflows-library/commit/af22d6e644893a4a3ed57768ce45475a0830c688))
+
 ## [1.5.3](https://github.com/7K-Hiroba/workflows-library/compare/v1.5.2...v1.5.3) (2026-05-26)
 
 
