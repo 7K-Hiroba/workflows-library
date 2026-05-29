@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/7K-Hiroba/workflows-library/compare/v1.6.2...v1.7.0) (2026-05-29)
+
+
+### Features
+
+* generalize helm-docs to compose action ([8a97a80](https://github.com/7K-Hiroba/workflows-library/commit/8a97a8010b8fc17d867475272e4df2a21c1eb7c1))
+
 ## [1.6.2](https://github.com/7K-Hiroba/workflows-library/compare/v1.6.1...v1.6.2) (2026-05-27)
 
 
