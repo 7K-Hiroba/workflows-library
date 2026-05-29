@@ -33,7 +33,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           has_changes=false
           for chart_dir in ${{ steps.find-charts.outputs.charts }}; do
             helm-docs --chart-search-root "$chart_dir" --log-level warning
@@ -42,16 +42,16 @@ jobs:
               has_changes=true
             fi
           done
-          
+
           if [ "$has_changes" = true ]; then
             LAST_MSG=$(git log -1 --pretty=%s)
             if [[ "$LAST_MSG" == *"chore: update helm-docs"* ]]; then
               echo "::notice::helm-docs commit already present, skipping to avoid loop"
               exit 0
             fi
-            
+
             git commit -m "chore: update helm-docs"
-            
+
             if git symbolic-ref --quiet HEAD >/dev/null 2>&1; then
               git push
             else
