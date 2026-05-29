@@ -56,10 +56,10 @@ runs:
           if git symbolic-ref --quiet HEAD >/dev/null 2>&1; then
             git push
           else
-            # Detached HEAD: push to the branch referenced by GITHUB_REF_NAME
-            BRANCH="${GITHUB_REF_NAME}"
+            # Detached HEAD: prefer GITHUB_HEAD_REF (PR branch) over GITHUB_REF_NAME
+            BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
             if [ -n "$BRANCH" ] && [[ ! "$BRANCH" == refs/* ]]; then
-              git push origin "HEAD:${BRANCH}"
+              git push origin "HEAD:refs/heads/${BRANCH}"
             else
               echo "::warning::Cannot push from detached HEAD (ref: ${BRANCH:-none}). Skipping push."
             fi
