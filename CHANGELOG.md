@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.3](https://github.com/7K-Hiroba/workflows-library/compare/v1.7.2...v1.7.3) (2026-05-29)
+
+
+### Bug Fixes
+
+* fix composite action not callable ([9cce325](https://github.com/7K-Hiroba/workflows-library/commit/9cce325b546ba16f6fca6fe34f6d4cca55c8f69c))
+
 ## [1.7.2](https://github.com/7K-Hiroba/workflows-library/compare/v1.7.1...v1.7.2) (2026-05-29)
 
 
