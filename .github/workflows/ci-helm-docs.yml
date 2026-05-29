@@ -23,10 +23,10 @@ jobs:
         id: find-charts
         run: |
           charts=""
-          for gotmpl in $(find helm -name "README.md.gotmpl" -type f); do
+          while IFS= read -r -d '' gotmpl; do
             chart_dir="$(dirname "$gotmpl")"
             charts="${charts}${chart_dir} "
-          done
+          done < <(find helm -name "README.md.gotmpl" -type f -print0)
           echo "charts=${charts}" >> "$GITHUB_OUTPUT"
 
       - name: Generate and push helm-docs
