@@ -65,7 +65,9 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: ${{ github.repository }}/.github/actions/helm-docs@${{ github.ref }}
+      - uses: actions/checkout@v6
+
+      - uses: 7K-Hiroba/workflows-library/.github/actions/helm-docs@main
         with:
           path: ${{ inputs.path }}
 

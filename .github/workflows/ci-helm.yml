@@ -104,7 +104,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ${{ github.repository }}/.github/actions/helm-docs@${{ github.ref }}
+      - uses: 7K-Hiroba/workflows-library/.github/actions/helm-docs@v1
         with:
           path: ${{ inputs.path }}
 
