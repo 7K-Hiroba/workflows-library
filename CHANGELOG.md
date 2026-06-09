@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/7K-Hiroba/workflows-library/compare/v1.9.0...v1.10.0) (2026-06-09)
+
+
+### Features
+
+* ct lint now checks for .ct file and adds to arg ([2bb90f9](https://github.com/7K-Hiroba/workflows-library/commit/2bb90f9ba6fc3bcb477409d35f188a220b8f8c72))
+
 ## [1.9.0](https://github.com/7K-Hiroba/workflows-library/compare/v1.8.1...v1.9.0) (2026-06-01)
 
 
